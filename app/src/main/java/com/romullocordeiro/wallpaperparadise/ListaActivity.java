@@ -1,12 +1,18 @@
 package com.romullocordeiro.wallpaperparadise;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.WallpaperManager;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -18,6 +24,8 @@ import android.widget.Toast;
 import com.romullocordeiro.wallpaperparadise.DAO.ImageGetHandler;
 import com.romullocordeiro.wallpaperparadise.Model.Image;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class ListaActivity extends AppCompatActivity {
@@ -147,6 +155,14 @@ public class ListaActivity extends AppCompatActivity {
         //myScrollView.smoothScrollTo(0,0);
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
+            Toast.makeText(this, "Permissão garantida, tente salvar o Wallpaper novamente", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     public void setViewImage(int index, Image img){
         myImgViews[index].setImageBitmap(img.getImg());
         myImagesModels[index] = img;
@@ -181,7 +197,14 @@ public class ListaActivity extends AppCompatActivity {
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(ListaActivity.this, "Não implementado", Toast.LENGTH_SHORT).show();
+                        try {
+                            saveImageToDevice(myImagesModels[index]);
+                            Toast.makeText(ListaActivity.this, "Imagem salva na galeria (─‿‿─)", Toast.LENGTH_SHORT).show();
+                        } catch (IOException e) {
+                            Toast.makeText(ListaActivity.this, "Ocorreu um erro ｡･ﾟﾟ*(>д<)*ﾟﾟ･｡", Toast.LENGTH_SHORT).show();
+                            e.printStackTrace();
+                            Log.d("erro ao salvar", e.getMessage());
+                        }
                     }
                 });
         builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
@@ -193,6 +216,20 @@ public class ListaActivity extends AppCompatActivity {
 
         AlertDialog dialog = builder.create();
         dialog.show();
+
+    }
+
+    public void saveImageToDevice(Image image) throws IOException {
+
+        if (Build.VERSION.SDK_INT >= 23 && checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+        }else{
+            Bitmap bitmap = image.getImg();
+            MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, image.getName() , "Wallpaper de WallpaperParadise");
+        }
+
+
 
     }
 
