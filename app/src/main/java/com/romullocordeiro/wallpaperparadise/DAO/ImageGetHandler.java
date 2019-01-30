@@ -3,56 +3,124 @@ package com.romullocordeiro.wallpaperparadise.DAO;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.romullocordeiro.wallpaperparadise.ListaActivity;
 import com.romullocordeiro.wallpaperparadise.Model.Image;
 
-import java.net.URL;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-public class ImageGetHandler extends AsyncTask<String, Integer, Image> {
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
+public class ImageGetHandler extends AsyncTask<String, String, List<Image>> {
 
     ListaActivity ref;
-    int viewId;
 
-    public ImageGetHandler (int viewId ,ListaActivity ref){
-        this.viewId = viewId;
+    public ImageGetHandler (ListaActivity ref){
         this.ref = ref;
     }
 
     /*
-    TODO preciso tratar caso a imagem com o id solicitado não exista ou tenha sido excluido
-    provavelmente isso vai ser resolvido quando eu implementar o banco de dados com referencias
-    mas ja fica aqui o aviso romullo do futuro, esse pepino é seu
-    */
+    Essa classe funciona da seguinte maneira...
+    Ela é um AsyncTask que é iniciado como qualquer outro, os parametros que ela deve receber
+    tem que ser caminhos de GET definidos da api image_provider criada com o Spring boot
+    os caminhos são:
+    images = pegar todas as imagens do banco em um JSON
+    images/id/value = pegar uma imagem especifica pelo id
+    images/tag/value = pegar todas imagens que possuam uma certa tag
+
+    De nada Rômullo do futuro
+     */
 
 
     @Override
-    protected Image doInBackground(String... params) {
-        Bitmap img = null;//vai receber a imagem da url
-        String s = "";//usada pra segurar a string da url
-        Image image = new Image();
-        try {//tenta pegar uma imagem png, se n for ou falhar, vai pro catch
-            s = "https://romulloimagedatabase.000webhostapp.com/Imagens/" + params[0] + ".png";
-            URL url = new URL(s);
-            img = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-            image.setImg(img);
-        } catch (Exception e) {
+    protected List<Image> doInBackground(String... params) {
+        HttpURLConnection connection = null;
+        BufferedReader reader = null;
+
+        try {
+
+            //esse primeiro bloco cuida de receber o JSON da URI da API e preparar ele pra uso
+            URL url = new URL("http://192.168.0.109:8080/api/"+params[0]);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.connect();
+            InputStream stream = connection.getInputStream();
+            reader = new BufferedReader(new InputStreamReader(stream));
+            StringBuffer buffer = new StringBuffer();
+            String s = buffer.toString();
+            Log.d("buffer to string", s);
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                buffer.append(line+"\n");
+                Log.d("Response: ", "> " + line);   //here u ll get whole response...... :-)
+            }
+
+            s = buffer.toString();
+
+            //esse segundo bloco uma lista de Image é populada com o json
+
+            try {
+                JSONArray jsonArray = new JSONArray(s);
+                List<Image> imgList = new ArrayList<Image>();
+                for(int i = 0; i < jsonArray.length(); i++){
+                    Bitmap imgBitmap = null;
+                    String s1 = jsonArray.getJSONObject(i).getString("reference").toString();
+                    URL url1 = new URL(s1);
+                    imgBitmap = BitmapFactory.decodeStream(url1.openConnection().getInputStream());
+                    Image img = new Image(
+                            jsonArray.getJSONObject(i).getInt("id"),
+                            jsonArray.getJSONObject(i).getString("name"),
+                            jsonArray.getJSONObject(i).getString("uploader"),
+                            jsonArray.getJSONObject(i).getString("tag"),
+                            jsonArray.getJSONObject(i).getString("reference"),
+                            imgBitmap
+                    );
+                    imgList.add(img);
+                    Log.d("List Check", "Adicionou");
+                }
+                //String id, String name,String uploader,String tag, String reference
+                return imgList;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        } catch (MalformedURLException e) {
             e.printStackTrace();
-            try {//tenta pegar uma imagem jpg, se n for ou falhar, vai pro catch
-                s = "https://romulloimagedatabase.000webhostapp.com/Imagens/" + params[0] + ".jpg";
-                URL url = new URL(s);
-                img = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-                image.setImg(img);
-            } catch (Exception e1) {
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+            try {
+                if (reader != null) {
+                    reader.close();
+                }
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-
-        return image;
+        return null;
     }
 
     @Override
-    protected void onPostExecute (Image img){
-        ref.setViewImage(viewId, img);
+    protected void onPostExecute (List<Image> imgList){
+
+        for(int i = 0; i < imgList.size(); i++){
+            Log.d("imgList Values: ", imgList.get(i).getName());
+        }
+
+        ref.startImageArray(imgList);
     }
 }

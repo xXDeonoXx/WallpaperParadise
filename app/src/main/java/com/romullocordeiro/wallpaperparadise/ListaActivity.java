@@ -6,11 +6,9 @@ import android.app.WallpaperManager;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -24,12 +22,14 @@ import android.widget.Toast;
 import com.romullocordeiro.wallpaperparadise.DAO.ImageGetHandler;
 import com.romullocordeiro.wallpaperparadise.Model.Image;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ListaActivity extends AppCompatActivity {
 
+
+    //TODO 26 Janeiro, ja recebo uma lista de imagens populada do banco de dados, agora só preciso converter as imagens para bitmap com um asynctask e setar nas views
 
 
     //inicio da classe com AsyncTask que vai setar o wallpaper, é usada na função setWallpaper
@@ -59,13 +59,10 @@ public class ListaActivity extends AppCompatActivity {
 
 
     private ImageView[] myImgViews = new ImageView[5];
-    private Image[] myImagesModels = new Image[5];
+    private List<Image> imgList = new ArrayList<Image>();
     private ScrollView myScrollView;
     private Button btBack;
     private Button btNext;
-
-    private int keyId = 1;
-    //TODO esse sistema de keyId devera ser substituido por um get de ids aleatórias do banco de dados quando for implementado
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,8 +120,7 @@ public class ListaActivity extends AppCompatActivity {
         btBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                keyId -= myImgViews.length * 2;
-                populateViews();
+                Toast.makeText(ListaActivity.this, "não implementado", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -132,27 +128,20 @@ public class ListaActivity extends AppCompatActivity {
         btNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                populateViews();
+                Toast.makeText(ListaActivity.this, "não implementado", Toast.LENGTH_SHORT).show();
             }
         });
 
-        populateViews();
+
+        ImageGetHandler igh = new ImageGetHandler(this);
+        igh.execute("imagens");
 
 
     }
 
-    public void populateViews(){
-        for(int i = 0; i < myImgViews.length; i++){
-            Log.d("KeyId","Valor da KeyId: " + keyId);
-            //todo na linha abaixo eu preciso dar set em uma imagem de "carregando"
-
-            myImgViews[i].setImageResource(R.drawable.ic_launcher_background);
-            myScrollView.smoothScrollTo(0,0);
-            ImageGetHandler igh = new ImageGetHandler(i,this);
-            igh.execute("" + (keyId));
-            keyId += 1;
-        }
-        //myScrollView.smoothScrollTo(0,0);
+    public void startImageArray(List<Image> imgList){
+        this.imgList = imgList;
+        populateViewImage(imgList);
     }
 
     @Override
@@ -163,28 +152,30 @@ public class ListaActivity extends AppCompatActivity {
         }
     }
 
-    public void setViewImage(int index, Image img){
-        myImgViews[index].setImageBitmap(img.getImg());
-        myImagesModels[index] = img;
+    public void populateViewImage(List<Image> img){
+        for(int i = 0; i < 5; i++){
+            myImgViews[i].setImageBitmap(img.get(i).getImg());
+        }
     }
 
     private void setWallpaper(final int index){
 
 
+        //todo preciso reimplementar essa função depois de concertar a exibição das views
 
         AlertDialog.Builder builder = new AlertDialog.Builder(ListaActivity.this);
         builder.setCancelable(true);
         builder.setTitle("O que deseja fazer ?");
-        builder.setMessage("O que dejesa fazer com a imagem '" + myImagesModels[index].getName() + "' ?");
+        builder.setMessage("O que dejesa fazer com a imagem '" + imgList.get(index).getName() + "' ?");
         builder.setNeutralButton("Definir como papel de parede",
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         try {
-                            //TODO criei uma classe com asynctask la em cima, tenho q setar o wallpaper por ela
                             setWallpaperClass swc = new setWallpaperClass();
                             Toast.makeText(getApplicationContext(), "Alterando papel de parede...", Toast.LENGTH_SHORT).show();
-                            swc.execute(myImagesModels[index].getImg());
+
+                            swc.execute(imgList.get(index).getImg());
                             Toast.makeText(getApplicationContext(), "Papel de parede alterado ＼(＾▽＾)／", Toast.LENGTH_LONG).show();
                         }catch (Exception e){
                             Toast.makeText(getApplicationContext(),
@@ -198,7 +189,7 @@ public class ListaActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         try {
-                            saveImageToDevice(myImagesModels[index]);
+                            saveImageToDevice(imgList.get(index));
                             Toast.makeText(ListaActivity.this, "Imagem salva na galeria (─‿‿─)", Toast.LENGTH_SHORT).show();
                         } catch (IOException e) {
                             Toast.makeText(ListaActivity.this, "Ocorreu um erro ｡･ﾟﾟ*(>д<)*ﾟﾟ･｡", Toast.LENGTH_SHORT).show();
@@ -220,6 +211,8 @@ public class ListaActivity extends AppCompatActivity {
     }
 
     public void saveImageToDevice(Image image) throws IOException {
+
+        //todo preciso reimplementar essa função depois de concertar a exibição das views
 
         if (Build.VERSION.SDK_INT >= 23 && checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
