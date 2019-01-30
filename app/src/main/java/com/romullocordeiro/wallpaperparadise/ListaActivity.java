@@ -29,35 +29,6 @@ import java.util.List;
 public class ListaActivity extends AppCompatActivity {
 
 
-    //TODO 26 Janeiro, ja recebo uma lista de imagens populada do banco de dados, agora só preciso converter as imagens para bitmap com um asynctask e setar nas views
-
-
-    //inicio da classe com AsyncTask que vai setar o wallpaper, é usada na função setWallpaper
-
-    public class setWallpaperClass extends AsyncTask<Bitmap, Integer, Integer>{
-
-        @Override
-        protected Integer doInBackground(Bitmap... bitmaps) {
-            WallpaperManager wm = WallpaperManager.getInstance(ListaActivity.this);
-            try {
-                wm.setBitmap(bitmaps[0]);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-    }
-    //fim
-
-
-
-
-
-
-
-
-
-
     private ImageView[] myImgViews = new ImageView[5];
     private List<Image> imgList = new ArrayList<Image>();
     private ScrollView myScrollView;
@@ -141,7 +112,12 @@ public class ListaActivity extends AppCompatActivity {
 
     public void startImageArray(List<Image> imgList){
         this.imgList = imgList;
-        populateViewImage(imgList);
+        try{
+            populateViewImage(imgList);
+        }catch (NullPointerException e){
+            Toast.makeText(this, "Houve um erro com o recebimento das informações", Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     @Override
@@ -153,6 +129,17 @@ public class ListaActivity extends AppCompatActivity {
     }
 
     public void populateViewImage(List<Image> img){
+
+        //todo preciso fazer com que as imgs da lista de imagens que serão usadas sejam criadas(usar asyncTask), por enquanto são null
+
+        /*
+                    Bitmap imgBitmap = null;
+                    String s1 = img.get(index).getReference();
+                    URL url1 = new URL(s1);
+                    imgBitmap = BitmapFactory.decodeStream(url1.openConnection().getInputStream());
+
+         */
+
         for(int i = 0; i < 5; i++){
             myImgViews[i].setImageBitmap(img.get(i).getImg());
         }
@@ -161,7 +148,22 @@ public class ListaActivity extends AppCompatActivity {
     private void setWallpaper(final int index){
 
 
-        //todo preciso reimplementar essa função depois de concertar a exibição das views
+        class setWallpaperClass extends AsyncTask<Bitmap, Integer, Integer>{
+
+            @Override
+            protected Integer doInBackground(Bitmap... bitmaps) {
+                WallpaperManager wm = WallpaperManager.getInstance(ListaActivity.this);
+                try {
+                    wm.setBitmap(bitmaps[0]);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }
+
+
+        //todo preciso reimplementar essa função depois de implementar RecyclerView
 
         AlertDialog.Builder builder = new AlertDialog.Builder(ListaActivity.this);
         builder.setCancelable(true);
@@ -212,7 +214,7 @@ public class ListaActivity extends AppCompatActivity {
 
     public void saveImageToDevice(Image image) throws IOException {
 
-        //todo preciso reimplementar essa função depois de concertar a exibição das views
+        //todo mudar o funcionamento dessa função quando RecyclerView for implementado
 
         if (Build.VERSION.SDK_INT >= 23 && checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {

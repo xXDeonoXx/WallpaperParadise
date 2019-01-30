@@ -42,6 +42,8 @@ public class ImageGetHandler extends AsyncTask<String, String, List<Image>> {
     De nada Rômullo do futuro
      */
 
+    //todo preciso criar um metodo que retorno todos os resultados que possuam uma certa TAG, ja implementado na api
+    //caminho = imagens/tag/tagAqui
 
     @Override
     protected List<Image> doInBackground(String... params) {
@@ -73,17 +75,13 @@ public class ImageGetHandler extends AsyncTask<String, String, List<Image>> {
                 JSONArray jsonArray = new JSONArray(s);
                 List<Image> imgList = new ArrayList<Image>();
                 for(int i = 0; i < jsonArray.length(); i++){
-                    Bitmap imgBitmap = null;
-                    String s1 = jsonArray.getJSONObject(i).getString("reference").toString();
-                    URL url1 = new URL(s1);
-                    imgBitmap = BitmapFactory.decodeStream(url1.openConnection().getInputStream());
                     Image img = new Image(
                             jsonArray.getJSONObject(i).getInt("id"),
                             jsonArray.getJSONObject(i).getString("name"),
                             jsonArray.getJSONObject(i).getString("uploader"),
                             jsonArray.getJSONObject(i).getString("tag"),
                             jsonArray.getJSONObject(i).getString("reference"),
-                            imgBitmap
+                            null
                     );
                     imgList.add(img);
                     Log.d("List Check", "Adicionou");
@@ -116,11 +114,6 @@ public class ImageGetHandler extends AsyncTask<String, String, List<Image>> {
 
     @Override
     protected void onPostExecute (List<Image> imgList){
-
-        for(int i = 0; i < imgList.size(); i++){
-            Log.d("imgList Values: ", imgList.get(i).getName());
-        }
-
         ref.startImageArray(imgList);
     }
 }
