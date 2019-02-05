@@ -10,6 +10,11 @@ public class Image {
 
     private String name;
     private String uploader;
+
+    public String getTag() {
+        return tag;
+    }
+
     private String tag;
     private int id;
     private String reference = null;

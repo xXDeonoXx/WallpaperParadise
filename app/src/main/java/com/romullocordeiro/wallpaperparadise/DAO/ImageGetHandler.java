@@ -51,7 +51,6 @@ public class ImageGetHandler extends AsyncTask<String, String, List<Image>> {
         BufferedReader reader = null;
 
         try {
-
             //esse primeiro bloco cuida de receber o JSON da URI da API e preparar ele pra uso
             URL url = new URL("http://192.168.0.109:8080/api/"+params[0]);
             connection = (HttpURLConnection) url.openConnection();

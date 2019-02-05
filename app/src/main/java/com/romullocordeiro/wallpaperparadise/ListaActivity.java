@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -21,6 +23,7 @@ import android.widget.Toast;
 
 import com.romullocordeiro.wallpaperparadise.DAO.ImageGetHandler;
 import com.romullocordeiro.wallpaperparadise.Model.Image;
+import com.romullocordeiro.wallpaperparadise.Model.RecyclerViewAdapter;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,80 +31,14 @@ import java.util.List;
 
 public class ListaActivity extends AppCompatActivity {
 
-
-    private ImageView[] myImgViews = new ImageView[5];
     private List<Image> imgList = new ArrayList<Image>();
-    private ScrollView myScrollView;
-    private Button btBack;
-    private Button btNext;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.lista_wallpapers);
 
-        myImgViews[0] = (ImageView)findViewById(R.id.imageView1);
-        myImgViews[0].setClickable(true);
-        myImgViews[0].setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                setWallpaper(0);
-            }
-        });
-
-        myImgViews[1] = (ImageView)findViewById(R.id.imageView2);
-        myImgViews[1].setClickable(true);
-        myImgViews[1].setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                setWallpaper(1);
-            }
-        });
-
-        myImgViews[2] = (ImageView)findViewById(R.id.imageView3);
-        myImgViews[2].setClickable(true);
-        myImgViews[2].setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                setWallpaper(2);
-            }
-        });
-
-        myImgViews[3] = (ImageView)findViewById(R.id.imageView4);
-        myImgViews[3].setClickable(true);
-        myImgViews[3].setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                setWallpaper(3);
-            }
-        });
-
-        myImgViews[4] = (ImageView)findViewById(R.id.imageView5);
-        myImgViews[4].setClickable(true);
-        myImgViews[4].setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                setWallpaper(4);
-            }
-        });
-
-        myScrollView = (ScrollView)findViewById(R.id.scrollViewWithImages);//usado para dar scroll pro topo
-
-        btBack = (Button)findViewById(R.id.btBack);
-        btBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(ListaActivity.this, "não implementado", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        btNext = (Button)findViewById(R.id.btNext);
-        btNext.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(ListaActivity.this, "não implementado", Toast.LENGTH_SHORT).show();
-            }
-        });
 
 
         ImageGetHandler igh = new ImageGetHandler(this);
@@ -111,9 +48,13 @@ public class ListaActivity extends AppCompatActivity {
     }
 
     public void startImageArray(List<Image> imgList){
-        this.imgList = imgList;
+        //aqui o array com o json é retornado e mandado para o RecyclerViewAdapter
         try{
-            populateViewImage(imgList);
+            //popular recycler view aqui
+            RecyclerView recyclerView = findViewById(R.id.recycler_view);
+            RecyclerViewAdapter recyclerViewAdapter = new RecyclerViewAdapter(getBaseContext(),imgList);
+            recyclerView.setAdapter(recyclerViewAdapter);
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
         }catch (NullPointerException e){
             Toast.makeText(this, "Houve um erro com o recebimento das informações", Toast.LENGTH_SHORT).show();
         }
@@ -128,22 +69,6 @@ public class ListaActivity extends AppCompatActivity {
         }
     }
 
-    public void populateViewImage(List<Image> img){
-
-        //todo preciso fazer com que as imgs da lista de imagens que serão usadas sejam criadas(usar asyncTask), por enquanto são null
-
-        /*
-                    Bitmap imgBitmap = null;
-                    String s1 = img.get(index).getReference();
-                    URL url1 = new URL(s1);
-                    imgBitmap = BitmapFactory.decodeStream(url1.openConnection().getInputStream());
-
-         */
-
-        for(int i = 0; i < 5; i++){
-            myImgViews[i].setImageBitmap(img.get(i).getImg());
-        }
-    }
 
     private void setWallpaper(final int index){
 
