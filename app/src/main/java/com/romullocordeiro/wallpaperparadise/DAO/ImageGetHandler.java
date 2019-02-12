@@ -20,11 +20,13 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ImageGetHandler extends AsyncTask<String, String, List<Image>> {
 
     ListaActivity ref;
+    final String serverUrl = "https://romullo-image-provider.herokuapp.com/api/";
 
     public ImageGetHandler (ListaActivity ref){
         this.ref = ref;
@@ -52,7 +54,7 @@ public class ImageGetHandler extends AsyncTask<String, String, List<Image>> {
 
         try {
             //esse primeiro bloco cuida de receber o JSON da URI da API e preparar ele pra uso
-            URL url = new URL("http://192.168.0.109:8080/api/"+params[0]);
+            URL url = new URL(serverUrl + params[0]);
             connection = (HttpURLConnection) url.openConnection();
             connection.connect();
             InputStream stream = connection.getInputStream();
@@ -113,6 +115,8 @@ public class ImageGetHandler extends AsyncTask<String, String, List<Image>> {
 
     @Override
     protected void onPostExecute (List<Image> imgList){
-        ref.startImageArray(imgList);
+        List<Image> holder = imgList;
+        Collections.reverse(holder);
+        ref.startImageArray(holder);
     }
 }

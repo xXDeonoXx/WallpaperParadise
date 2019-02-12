@@ -1,6 +1,10 @@
 package com.romullocordeiro.wallpaperparadise;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -19,7 +23,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
 
         btListar = (Button)findViewById(R.id.btListar);
         btListar.setOnClickListener(new View.OnClickListener(){
@@ -46,8 +49,25 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        try{
+            if (Build.VERSION.SDK_INT >= 23 && checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+            }
+        }catch (Exception e){
+            Toast.makeText(this, "Falha ao obter autorização...", Toast.LENGTH_SHORT).show();
+        }
+
+
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
+            Toast.makeText(this, "Permissão garantida, tente salvar o Wallpaper novamente", Toast.LENGTH_SHORT).show();
+        }
+    }
 
 }
 

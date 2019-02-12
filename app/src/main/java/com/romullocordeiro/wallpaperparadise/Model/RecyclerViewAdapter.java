@@ -1,7 +1,19 @@
 package com.romullocordeiro.wallpaperparadise.Model;
 
+import android.Manifest;
+import android.app.AlertDialog;
+import android.app.WallpaperManager;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.AsyncTask;
+import android.os.Build;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,8 +25,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
+import com.romullocordeiro.wallpaperparadise.ListaActivity;
 import com.romullocordeiro.wallpaperparadise.R;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,25 +58,44 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder viewHolder, final int i) {
+    public void onBindViewHolder(@NonNull final ViewHolder viewHolder1, final int i) {
         Log.d(TAG, "onBindViewHolder: called");
+
+        ViewHolder viewHolder = viewHolder1;
+
 
         Glide.with(mContext)
                 .asBitmap()
                 .load(imgList.get(i).getReference())
+                .listener(new RequestListener<Bitmap>() {
+                    @Override
+                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
+                        Toast.makeText(mContext, "Falha ao carregar imagem, verifique sua conexão", Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(Bitmap resource, Object model, final Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
+                        final ViewHolder viewHolder = viewHolder1;
+                        viewHolder.nome.setText("Nome: " +imgList.get(i).getName());
+                        viewHolder.uploader.setText("Uploader: " +imgList.get(i).getUploader());
+                        viewHolder.tags.setText("Tags: " +imgList.get(i).getTag());
+                        viewHolder.getImageView().getLayoutParams().height = RelativeLayout.LayoutParams.WRAP_CONTENT;
+                        viewHolder.getImageView().requestLayout();
+                        viewHolder.parentLayout.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                Log.d(TAG, "Clicou no viewHolder: " + i);
+                                BitmapDrawable drawable = (BitmapDrawable) viewHolder.getImageView().getDrawable();
+                                Bitmap img = drawable.getBitmap();
+                                setWallpaper(img, getItemCount());
+                            }
+                        });
+                        return false;
+                    }
+                })
                 .into(viewHolder.imageView);
 
-        viewHolder.nome.setText(imgList.get(i).getName());
-        viewHolder.uploader.setText(imgList.get(i).getUploader());
-        viewHolder.tags.setText(imgList.get(i).getTag());
-
-        viewHolder.parentLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d(TAG, "Clicou no viewHolder: " + i);
-                Toast.makeText(mContext, i, Toast.LENGTH_SHORT).show();
-            }
-        });
 
     }
 
@@ -72,20 +109,140 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     public class ViewHolder extends RecyclerView.ViewHolder{
 
-        ImageView imageView;
-        TextView nome;
-        TextView uploader;
-        TextView tags;
-        RelativeLayout parentLayout;
+        private ImageView imageView;
+        private TextView nome;
+        private TextView uploader;
+        private TextView tags;
+
+        public ImageView getImageView() {
+            return imageView;
+        }
+
+        public void setImageView(ImageView imageView) {
+            this.imageView = imageView;
+        }
+
+        public TextView getNome() {
+            return nome;
+        }
+
+        public void setNome(TextView nome) {
+            this.nome = nome;
+        }
+
+        public TextView getUploader() {
+            return uploader;
+        }
+
+        public void setUploader(TextView uploader) {
+            this.uploader = uploader;
+        }
+
+        public TextView getTags() {
+            return tags;
+        }
+
+        public void setTags(TextView tags) {
+            this.tags = tags;
+        }
+
+        public RelativeLayout getParentLayout() {
+            return parentLayout;
+        }
+
+        public void setParentLayout(RelativeLayout parentLayout) {
+            this.parentLayout = parentLayout;
+        }
+
+        private RelativeLayout parentLayout;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.imageView);
+            imageView.setImageResource(R.drawable.logo);
+
             nome = itemView.findViewById(R.id.nameText);
+
             uploader = itemView.findViewById(R.id.uploaderText);
+
             tags = itemView.findViewById(R.id.tagsText);
+
             parentLayout = itemView.findViewById(R.id.parent_layout);
         }
     }
+
+    private void setWallpaper(final Bitmap image, int index){
+
+
+        class setWallpaperClass extends AsyncTask<Bitmap, Integer, Integer>{
+
+            @Override
+            protected Integer doInBackground(Bitmap... bitmaps) {
+                WallpaperManager wm = WallpaperManager.getInstance(mContext);
+                try {
+                    wm.setBitmap(image);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        builder.setCancelable(true);
+        builder.setTitle("O que deseja fazer ?");
+        builder.setMessage("O que dejesa fazer com a imagem '" + "NOME DA IMAGEM" + "' ?");
+        builder.setNeutralButton("Definir como papel de parede",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        try {
+                            setWallpaperClass swc = new setWallpaperClass();
+                            Toast.makeText(mContext, "Alterando papel de parede...", Toast.LENGTH_SHORT).show();
+
+                            swc.execute(image);
+                            Toast.makeText(mContext, "Papel de parede alterado ＼(＾▽＾)／", Toast.LENGTH_LONG).show();
+                        }catch (Exception e){
+                            Toast.makeText(mContext,
+                                    "Falha ao definir Papel de parede (｡╯︵╰｡)", Toast.LENGTH_SHORT).show();
+                            Log.d("Falha set WP",e.getMessage());
+                        }
+                    }
+                });
+        builder.setPositiveButton("Salvar no dispositivo",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        try {
+                            //saveImageToDevice(imgList.get(index));
+                            //Toast.makeText(ListaActivity.this, "Imagem salva na galeria (─‿‿─)", Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) {
+                            //Toast.makeText(ListaActivity.this, "Ocorreu um erro ｡･ﾟﾟ*(>д<)*ﾟﾟ･｡", Toast.LENGTH_SHORT).show();
+                            e.printStackTrace();
+                            Log.d("erro ao salvar", e.getMessage());
+                        }
+                    }
+                });
+        builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Toast.makeText(mContext, "Ação cancelada", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+    }
+
+    public void saveImageToDevice(Image image) throws IOException {
+        Bitmap bitmap = image.getImg();
+    }
+
+
+
+
+
+
 
 }
