@@ -5,11 +5,15 @@ import android.app.AlertDialog;
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -32,6 +36,8 @@ import com.bumptech.glide.request.target.Target;
 import com.romullocordeiro.wallpaperparadise.ListaActivity;
 import com.romullocordeiro.wallpaperparadise.R;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +45,7 @@ import java.util.List;
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
 
     private static final String TAG = "RecyclerViewAdapter";
+    private static final String folderName = "/WallpaperParadise";
 
     private Context mContext;
     private List<Image> imgList;
@@ -88,7 +95,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                                 Log.d(TAG, "Clicou no viewHolder: " + i);
                                 BitmapDrawable drawable = (BitmapDrawable) viewHolder.getImageView().getDrawable();
                                 Bitmap img = drawable.getBitmap();
-                                setWallpaper(img, getItemCount());
+                                setOrSaveWallpaper(img, i);
                             }
                         });
                         return false;
@@ -171,7 +178,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         }
     }
 
-    private void setWallpaper(final Bitmap image, int index){
+    private void setOrSaveWallpaper(final Bitmap image, final int index){
 
 
         class setWallpaperClass extends AsyncTask<Bitmap, Integer, Integer>{
@@ -191,7 +198,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
         builder.setCancelable(true);
         builder.setTitle("O que deseja fazer ?");
-        builder.setMessage("O que dejesa fazer com a imagem '" + "NOME DA IMAGEM" + "' ?");
+        builder.setMessage("O que dejesa fazer com a imagem '" + imgList.get(index).getName() + "' ?");
         builder.setNeutralButton("Definir como papel de parede",
                 new DialogInterface.OnClickListener() {
                     @Override
@@ -214,10 +221,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         try {
-                            //saveImageToDevice(imgList.get(index));
-                            //Toast.makeText(ListaActivity.this, "Imagem salva na galeria (─‿‿─)", Toast.LENGTH_SHORT).show();
+                            saveImageToDevice(image,imgList.get(index).getName());
+
                         } catch (Exception e) {
-                            //Toast.makeText(ListaActivity.this, "Ocorreu um erro ｡･ﾟﾟ*(>д<)*ﾟﾟ･｡", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(mContext, "Ocorreu um erro ｡･ﾟﾟ*(>д<)*ﾟﾟ･｡", Toast.LENGTH_SHORT).show();
                             e.printStackTrace();
                             Log.d("erro ao salvar", e.getMessage());
                         }
@@ -235,14 +242,46 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     }
 
-    public void saveImageToDevice(Image image) throws IOException {
-        Bitmap bitmap = image.getImg();
+    public void saveImageToDevice(Bitmap image, String name) throws IOException {
+
+
+        File direct = new File(Environment.getExternalStorageDirectory() + folderName);
+
+        if (!direct.exists()) {
+            File wallpaperDirectory = new File("/sdcard" + folderName);
+            wallpaperDirectory.mkdirs();
+        }
+
+        File file = new File(new File("/sdcard" + folderName), name + ".jpeg");
+        if (file.exists()) {
+            file.delete();
+        }
+        try {
+            FileOutputStream out = new FileOutputStream(file);
+            image.compress(Bitmap.CompressFormat.JPEG, 100, out);
+
+            //o bloco de if abaixo atualiza a galeria
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                Intent mediaScanIntent = new Intent(
+                        Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                Uri contentUri = Uri.fromFile(file);
+                mediaScanIntent.setData(contentUri);
+                mContext.sendBroadcast(mediaScanIntent);
+            } else {
+                mContext.sendBroadcast(new Intent(
+                        Intent.ACTION_MEDIA_MOUNTED,
+                        Uri.parse("file://"
+                                + Environment.getExternalStorageDirectory())));
+            }
+
+            out.flush();
+            out.close();
+            Toast.makeText(mContext, "Imagem salva com sucesso", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
-
-
-
-
-
 
 
 }
