@@ -225,12 +225,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                         }
                     }
                 });
-        builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(mContext, "Ação cancelada", Toast.LENGTH_SHORT).show();
-            }
-        });
 
         AlertDialog dialog = builder.create();
         dialog.show();
