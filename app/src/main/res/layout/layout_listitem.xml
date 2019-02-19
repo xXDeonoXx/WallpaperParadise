@@ -5,7 +5,8 @@
     android:id="@+id/parent_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#31303b">
+    android:background="#31303b"
+    style="@style/AppTheme">
 
     <android.support.v7.widget.AppCompatImageView
         android:id="@+id/imageView"

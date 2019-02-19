@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.romullocordeiro.wallpaperparadise.ListaActivity;
 import com.romullocordeiro.wallpaperparadise.Model.Image;
@@ -116,7 +117,11 @@ public class ImageGetHandler extends AsyncTask<String, String, List<Image>> {
     @Override
     protected void onPostExecute (List<Image> imgList){
         List<Image> holder = imgList;
-        Collections.reverse(holder);
-        ref.startImageArray(holder);
+        try{
+            Collections.reverse(holder);
+            ref.startImageArray(holder);
+        }catch (Exception e){
+            Toast.makeText(ref, "Falha ao baixar imagens, verifique sua internet e tenta novamente", Toast.LENGTH_SHORT).show();
+        }
     }
 }

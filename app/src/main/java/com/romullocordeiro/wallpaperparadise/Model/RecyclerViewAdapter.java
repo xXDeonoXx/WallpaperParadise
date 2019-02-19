@@ -187,14 +187,17 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             }
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext,AlertDialog.THEME_HOLO_DARK);
         builder.setCancelable(true);
         builder.setTitle("O que deseja fazer ?");
-        builder.setMessage("O que dejesa fazer com a imagem '" + imgList.get(index).getName() + "' ?");
+        builder.setMessage("O que deseja fazer com a imagem '" + imgList.get(index).getName() + "' ?");
         builder.setNeutralButton("Definir como papel de parede",
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+
+                        //todo preciso usar o assistente de wallpaper padrão do celular para definir o wallpaper
+
                         try {
                             setWallpaperClass swc = new setWallpaperClass();
                             Toast.makeText(mContext, "Alterando papel de parede...", Toast.LENGTH_SHORT).show();

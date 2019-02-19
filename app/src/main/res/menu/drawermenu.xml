@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/menuItemNovos" android:title="Novos"/>
+    <item android:id="@+id/menuItemPesquisar" android:title="Pesquisar por tag"/>
+    <item android:id="@+id/menuItemPorUsuarios" android:title="Por usuarios"/>
+    <item android:id="@+id/menuItemLogin" android:title="Login"/>
+
+</menu>

@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Wallpaper Paradise</string>
+    <string name="title_activity_main2">Main2Activity</string>
+
+    <string name="open">Open</string>
+    <string name="close">Close</string>
+
 </resources>
