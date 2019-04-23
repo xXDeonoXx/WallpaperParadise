@@ -16,10 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".Main2Activity"
-            android:label="@string/title_activity_main2"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
-        <activity
+
             android:name=".MainActivity"
             android:theme="@style/AppTheme">
             <intent-filter>
@@ -29,6 +26,19 @@
             </intent-filter>
         </activity>
         <activity android:name=".ListaActivity" />
+        <activity android:name=".UploadActivity" />
+
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="com.romullocordeiro.wallpaperparadise.fileprovider"
+            android:grantUriPermissions="true"
+            android:exported="false">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths" />
+        </provider>
+
+
     </application>
 
 </manifest>

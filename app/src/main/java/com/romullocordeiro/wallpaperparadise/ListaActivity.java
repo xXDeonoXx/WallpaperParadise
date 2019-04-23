@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.WallpaperManager;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
@@ -79,7 +80,7 @@ public class ListaActivity extends AppCompatActivity implements NavigationView.O
         try{
             //popular recycler view aqui
             RecyclerView recyclerView = findViewById(R.id.recycler_view);
-            RecyclerViewAdapter recyclerViewAdapter = new RecyclerViewAdapter(this,imgList);
+            RecyclerViewAdapter recyclerViewAdapter = new RecyclerViewAdapter(this,imgList, recyclerView);
             recyclerView.setAdapter(recyclerViewAdapter);
             recyclerView.setLayoutManager(new LinearLayoutManager(this));
             if(imgList.isEmpty()){
@@ -167,6 +168,10 @@ public class ListaActivity extends AppCompatActivity implements NavigationView.O
                 Toast.makeText(this, "Login", Toast.LENGTH_SHORT).show();
                 Log.d("Log do menu", "Você clicou em login");
                 break;
+            }
+            case R.id.menuItemUpload: {
+                Intent it = new Intent(getBaseContext(), UploadActivity.class);
+                startActivity(it);
             }
         }
         //close navigation drawer

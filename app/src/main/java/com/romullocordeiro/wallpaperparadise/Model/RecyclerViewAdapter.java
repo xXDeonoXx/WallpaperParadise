@@ -9,10 +9,12 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Binder;
 import android.os.Build;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.FileProvider;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -39,12 +41,15 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     private static final String TAG = "RecyclerViewAdapter";
     private static final String folderName = "/WallpaperParadise";
 
+
     private Context mContext;
     private List<Image> imgList;
+    private RecyclerView mRecyclerView;
 
-    public RecyclerViewAdapter(Context mContext, List<Image> imgList) {
+    public RecyclerViewAdapter(Context mContext, List<Image> imgList, RecyclerView recyclerView) {
         this.mContext = mContext;
         this.imgList = imgList;
+        this.mRecyclerView = recyclerView;
     }
 
 
@@ -173,20 +178,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     private void setOrSaveWallpaper(final Bitmap image, final int index){
 
 
-        class setWallpaperClass extends AsyncTask<Bitmap, Integer, Integer>{
-
-            @Override
-            protected Integer doInBackground(Bitmap... bitmaps) {
-                WallpaperManager wm = WallpaperManager.getInstance(mContext);
-                try {
-                    wm.setBitmap(image);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-        }
-
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext,AlertDialog.THEME_HOLO_DARK);
         builder.setCancelable(true);
         builder.setTitle("O que deseja fazer ?");
@@ -199,11 +190,14 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                         //todo preciso usar o assistente de wallpaper padrão do celular para definir o wallpaper
 
                         try {
-                            setWallpaperClass swc = new setWallpaperClass();
-                            Toast.makeText(mContext, "Alterando papel de parede...", Toast.LENGTH_SHORT).show();
 
-                            swc.execute(image);
-                            Toast.makeText(mContext, "Papel de parede alterado ＼(＾▽＾)／", Toast.LENGTH_LONG).show();
+                            //salva a imagem no dispositivo e chama o assistente de wallpaper antivo do celular para definiar o wallpaper
+                            Intent intent = new Intent(Intent.ACTION_ATTACH_DATA);
+                            intent.addCategory(Intent.CATEGORY_DEFAULT);
+                            Uri uriHolder = saveImageToDevice(image, imgList.get(index).getName());
+                            intent.setDataAndType(uriHolder, "image/jpeg").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            intent.putExtra("mimeType", "image/jpeg");
+                            mContext.startActivity(Intent.createChooser(intent, "Definir como:"));
                         }catch (Exception e){
                             Toast.makeText(mContext,
                                     "Falha ao definir Papel de parede (｡╯︵╰｡)", Toast.LENGTH_SHORT).show();
@@ -217,7 +211,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                     public void onClick(DialogInterface dialog, int which) {
                         try {
                             saveImageToDevice(image,imgList.get(index).getName());
-
+                            Toast.makeText(mContext, "Imagem salva na sua galeria", Toast.LENGTH_SHORT).show();
                         } catch (Exception e) {
                             Toast.makeText(mContext, "Ocorreu um erro ｡･ﾟﾟ*(>д<)*ﾟﾟ･｡", Toast.LENGTH_SHORT).show();
                             e.printStackTrace();
@@ -231,10 +225,11 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     }
 
-    public void saveImageToDevice(Bitmap image, String name) throws IOException {
+    public Uri saveImageToDevice(Bitmap image, String name) throws IOException {
 
 
         File direct = new File(Environment.getExternalStorageDirectory() + folderName);
+        Uri contentUri = null;
 
         if (!direct.exists()) {
             File wallpaperDirectory = new File("/sdcard" + folderName);
@@ -253,7 +248,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 Intent mediaScanIntent = new Intent(
                         Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-                Uri contentUri = Uri.fromFile(file);
+                contentUri = Uri.fromFile(file);
                 mediaScanIntent.setData(contentUri);
                 mContext.sendBroadcast(mediaScanIntent);
             } else {
@@ -265,11 +260,11 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
             out.flush();
             out.close();
-            Toast.makeText(mContext, "Imagem salva com sucesso", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        contentUri = FileProvider.getUriForFile(mContext,"com.romullocordeiro.wallpaperparadise.fileprovider", file);
+        return  contentUri;
     }
 
 

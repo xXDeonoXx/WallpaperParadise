@@ -5,5 +5,6 @@
     <item android:id="@+id/menuItemPesquisar" android:title="Pesquisar por tag"/>
     <item android:id="@+id/menuItemPorUsuarios" android:title="Por usuarios"/>
     <item android:id="@+id/menuItemLogin" android:title="Login"/>
+    <item android:id="@+id/menuItemUpload" android:title="Compartilhar Imagem"/>
 
 </menu>
