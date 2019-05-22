@@ -160,16 +160,7 @@ public class ListaActivity extends AppCompatActivity implements NavigationView.O
 
                 break;
             }
-            case R.id.menuItemPorUsuarios: {
-                Toast.makeText(this, "By Users", Toast.LENGTH_SHORT).show();
-                break;
-            }
-            case R.id.menuItemLogin: {
-                Toast.makeText(this, "Login", Toast.LENGTH_SHORT).show();
-                Log.d("Log do menu", "Você clicou em login");
-                break;
-            }
-            case R.id.menuItemUpload: {
+            case R.id.menuItemRequest: {
                 Intent it = new Intent(getBaseContext(), UploadActivity.class);
                 startActivity(it);
             }

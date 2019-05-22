@@ -45,22 +45,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btEntrar = (Button)findViewById(R.id.btEntrar);
-        btEntrar.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v){
-                Toast.makeText(MainActivity.this, "Não implementado", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        btCadastrar = (Button)findViewById(R.id.btCadastrar);
-        btCadastrar.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v){
-                Toast.makeText(MainActivity.this, "Não implementado", Toast.LENGTH_SHORT).show();
-            }
-        });
-
         try{
             if (Build.VERSION.SDK_INT >= 23 && checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     != PackageManager.PERMISSION_GRANTED) {
@@ -81,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    //metodo publico e estatico para pegar o caminho real de um arquivo partindo de seu URI
     @SuppressLint("NewApi")
     public static String getFilePath(Context context, Uri uri) throws URISyntaxException {
         String selection = null;
