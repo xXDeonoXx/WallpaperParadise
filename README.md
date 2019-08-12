@@ -1,3 +1,3 @@
 # WallpaperParadise
 
-WallpaperParadise é um aplicativo de compartilhamento de Wallpapers para dispositivos moveis com backend em Spring Boot (Rest API)
+WallpaperParadise é um aplicativo para encontrar Wallpapers parafeito para dispositivos android. Possui backend em Spring Boot (Rest API).
